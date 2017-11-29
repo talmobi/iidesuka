@@ -7,6 +7,7 @@
     "build": "browserify --node --standalone iidesuka -t [ babelify [ babel-preset-env ] ] index.js -o dist/iidesuka.js",
     "postbuild": "npm run uglify",
     "uglify": "uglifyjs dist/iidesuka.js -o dist/iidesuka.min.js",
+    "prepublish": "npm run build && npm test",
     "test": "node test/*.js | faucet"
   },
   "keywords": [
