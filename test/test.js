@@ -2,7 +2,34 @@ const path = require( 'path' )
 
 const test = require( 'tape' )
 
-const iidesuka = require( path.join( __dirname, '../index.js' ) )
+var iidesuka
+
+if ( process.env.TEST_TARGET === 'source' ) {
+  console.log( 'testing source index.js' )
+  iidesuka = require( path.join( __dirname, '../index.js' ) )
+}
+
+if ( process.env.TEST_TARGET === 'dist' ) {
+  console.log( 'testing dist/iidesuka.js' )
+  iidesuka = require( path.join( __dirname, '../dist/iidesuka.js' ) )
+}
+
+if ( process.env.TEST_TARGET === 'distmin' ) {
+  console.log( 'testing dist/iidesuka.min.js' )
+  iidesuka = require( path.join( __dirname, '../dist/iidesuka.min.js' ) )
+}
+
+test( 'test target selected', function ( t ) {
+  t.ok( iidesuka, 'test target selected' )
+
+  if ( !iidesuka ) {
+    t.comment( 'select test target by setting env variable TEST_TARGET=$target' )
+    t.comment( 'available targets: ' + 'source, dist, distmin' )
+    process.exit( 1 )
+  }
+
+  t.end()
+} )
 
 test( 'test empty object', function ( t ) {
   var o = {}
@@ -43,7 +70,9 @@ test( 'test failed typeof', function ( t ) {
   }
 
   var err = iidesuka( user ).typeof( 'name', 'object', 'xaxa' ).end()
-  t.ok( err.message.indexOf( 'xaxa' > 0 ) )
+
+  t.ok( err.message.indexOf( 'xaxa' ) > 0 )
+
   t.end()
 } )
 
@@ -68,7 +97,7 @@ test( 'test failed instanceof', function ( t ) {
   }
 
   var err = iidesuka( user ).instanceof( 'names', String, 'xaxa' ).end()
-  t.ok( err.message.indexOf( 'xaxa' > 0 ) )
+  t.ok( err.message.indexOf( 'xaxa' ) > 0 )
   t.end()
 } )
 
@@ -98,7 +127,8 @@ test( 'test successful e, ne, equals, notEquals', function ( t ) {
 test( 'test failed e, ne, equals, notEquals', function ( t ) {
   var user = {
     name: 'pinky',
-    names: [ 'inky', 'blinky', 'clyde' ]
+    names: [ 'inky', 'blinky', 'clyde' ],
+    animal: { type: 'giraffe' }
   }
 
   var err = (
@@ -114,14 +144,14 @@ test( 'test failed e, ne, equals, notEquals', function ( t ) {
     .end()
   )
 
-  t.ok( err.message.indexOf( 'xaxaONE' > 0 ) )
-  t.ok( err.message.indexOf( 'xaxaTWO' > 0 ) )
-  t.ok( err.message.indexOf( 'xaxaTHREE' > 0 ) )
-  t.ok( err.message.indexOf( 'xaxaFOUR' > 0 ) )
-  t.ok( err.message.indexOf( 'xaxaFIVE' > 0 ) )
-  t.ok( err.message.indexOf( 'xaxaSIX' > 0 ) )
-  t.ok( err.message.indexOf( 'xaxaSEVEN' > 0 ) )
-  t.ok( err.message.indexOf( 'xaxaEIGHT' > 0 ) )
+  t.ok( err.message.indexOf( 'xaxaONE' ) > 0 )
+  t.ok( err.message.indexOf( 'xaxaTWO' ) > 0 )
+  t.ok( err.message.indexOf( 'xaxaTHREE' ) > 0 )
+  t.ok( err.message.indexOf( 'xaxaFOUR' ) > 0 )
+  t.ok( err.message.indexOf( 'xaxaFIVE' ) > 0 )
+  t.ok( err.message.indexOf( 'xaxaSIX' ) > 0 )
+  t.ok( err.message.indexOf( 'xaxaSEVEN' ) > 0 )
+  t.ok( err.message.indexOf( 'xaxaEIGHT' ) > 0 )
 
   t.end()
 } )
@@ -176,17 +206,82 @@ test( 'test failed gt, gte, lt, lte', function ( t ) {
     .end()
   )
 
-  t.ok( err.message.indexOf( 'fail1' > 0 ) )
-  t.ok( err.message.indexOf( 'fail2' > 0 ) )
-  t.ok( err.message.indexOf( 'fail3' > 0 ) )
-  t.ok( err.message.indexOf( 'fail4' > 0 ) )
-  t.ok( err.message.indexOf( 'fail5' > 0 ) )
-  t.ok( err.message.indexOf( 'fail6' > 0 ) )
-  t.ok( err.message.indexOf( 'fail7' > 0 ) )
-  t.ok( err.message.indexOf( 'fail8' > 0 ) )
-  t.ok( err.message.indexOf( 'fail9' > 0 ) )
-  t.ok( err.message.indexOf( 'fail10' > 0 ) )
+  t.ok( err.message.indexOf( 'fail1' ) > 0 )
+  t.ok( err.message.indexOf( 'fail2' ) > 0 )
+  t.ok( err.message.indexOf( 'fail3' ) > 0 )
+  t.ok( err.message.indexOf( 'fail4' ) > 0 )
+  t.ok( err.message.indexOf( 'fail5' ) > 0 )
+  t.ok( err.message.indexOf( 'fail6' ) > 0 )
+  t.ok( err.message.indexOf( 'fail7' ) > 0 )
+  t.ok( err.message.indexOf( 'fail8' ) > 0 )
+  t.ok( err.message.indexOf( 'fail9' ) > 0 )
+  t.ok( err.message.indexOf( 'fail10' ) > 0 )
   t.ok( err.message.indexOf( 'xaxa' ) === -1 ) // only failures recorded
+
+  t.end()
+} )
+
+test( 'test successful forEach', function ( t ) {
+  var user = {
+    name: 'pinky',
+    list: [
+      { name: 'inky', age: 45 },
+      { name: 'blinky', age: 18 },
+      { name: 'clyde', age: 20 }
+    ]
+  }
+
+  var err = (
+    iidesuka( user )
+    .typeof( 'name', 'string', 'xaxa' )
+    .e( 'name', 'pinky', 'xaxa' )
+    .forEach( 'list' )
+      .typeof( 'name', 'string', 'xaxa' )
+      .typeof( 'age', 'number', 'xaxa' )
+      .gte( 'name.length', 3, 'xaxa' )
+      .gte( 'age', 18, 'xaxa' )
+      .lte( 'age', 60, 'xaxa' )
+      .done()
+    .typeof( 'name', 'string', 'xaxa' )
+    .e( 'name', 'pinky', 'xaxa' )
+    .end()
+  )
+  t.equal( err, undefined )
+  t.end()
+} )
+
+test( 'test successful forEach', function ( t ) {
+  var user = {
+    list: [
+      { name: 'dave', age: 17 },
+      { name: 'blinky', age: 18 },
+      { name: 'dave', age: 20 }
+    ]
+  }
+
+  var err = (
+    iidesuka( user )
+    .typeof( 'name', 'string', 'fail1' )
+    .e( 'name', 'pinky', 'fail2' )
+    .forEach( 'list' )
+      .nobail()
+      .typeof( 'name', 'string', 'xaxa' )
+      .typeof( 'age', 'number', 'xaxa' )
+      .e( 'name', 'dave', 'name was not "dave"' )
+      .gte( 'age', 18, 'age was less than 18' )
+      .done()
+    .typeof( 'name', 'string', 'fail5' )
+    .e( 'name', 'pinky', 'fail6' )
+    .end()
+  )
+
+  t.ok( err.message.indexOf( 'fail1' ) > 0 )
+  t.ok( err.message.indexOf( 'fail2' ) > 0 )
+  t.ok( err.message.indexOf( 'name was not "dave"' ) > 0, 'name was not "dave"' )
+  t.ok( err.message.indexOf( 'age was less than 18' ) > 0, 'age was less than 18' )
+  t.ok( err.message.indexOf( 'fail5' ) > 0 )
+  t.ok( err.message.indexOf( 'fail6' ) > 0 )
+  t.ok( err.message.indexOf( 'xaxa' ) === -1, 'no other errors' )
 
   t.end()
 } )
