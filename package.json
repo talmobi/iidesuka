@@ -8,7 +8,10 @@
     "postbuild": "npm run uglify",
     "uglify": "uglifyjs dist/iidesuka.js -o dist/iidesuka.min.js",
     "prepublish": "npm run build && npm test",
-    "test": "node test/*.js | faucet"
+    "test:source": "TEST_TARGET=source node test/*.js | faucet",
+    "test:dist": "TEST_TARGET=dist node test/*.js | faucet",
+    "test:distmin": "TEST_TARGET=distmin node test/*.js | faucet",
+    "test": "npm run test:source && npm run test:dist && npm run test:distmin"
   },
   "keywords": [
     "iidesuka"
