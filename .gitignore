@@ -1,0 +1,9 @@
+node_modules
+
+dist
+
+# vim temp files
+*.sw?
+
+# mac files
+*.DS_Store

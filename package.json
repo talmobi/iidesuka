@@ -1,0 +1,36 @@
+{
+  "name": "iidesuka",
+  "version": "0.0.0",
+  "description": "simple object field validator",
+  "main": "iidesuka.js",
+  "scripts": {
+    "build": "browserify --node --standalone iidesuka -t [ babelify [ babel-preset-env ] ] index.js -o dist/iidesuka.js",
+    "postbuild": "npm run uglify",
+    "uglify": "uglifyjs dist/iidesuka.js -o dist/iidesuka.min.js",
+    "test": "node test/*.js | faucet"
+  },
+  "keywords": [
+    "iidesuka"
+  ],
+  "author": "talmobi <talmo.christian@gmail.com>",
+  "license": "UNLICENSED",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/talmobi/iidesuka"
+  },
+  "bugs": {
+    "url": "https://github.com/talmobi/iidesuka/issues",
+    "email": "talmo.christian@gmail.com"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "babel-core": "~6.26.0",
+    "babel-preset-env": "~1.6.1",
+    "babelify": "~8.0.0",
+    "browserify": "~14.5.0",
+    "faucet": "0.0.1",
+    "tape": "~4.8.0",
+    "uglify-js": "~3.2.0"
+  }
+}
