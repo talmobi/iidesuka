@@ -2,7 +2,7 @@
   "name": "iidesuka",
   "version": "0.0.1",
   "description": "simple object field validator",
-  "main": "iidesuka.js",
+  "main": "dist/iidesuka.min.js",
   "scripts": {
     "build": "browserify --node --standalone iidesuka -t [ babelify [ babel-preset-env ] ] index.js -o dist/iidesuka.js",
     "postbuild": "npm run uglify",
@@ -15,7 +15,7 @@
   ],
   "author": "talmobi <talmo.christian@gmail.com>",
   "license": "UNLICENSED",
-  "private": true,
+  "private": false,
   "repository": {
     "type": "git",
     "url": "https://github.com/talmobi/iidesuka"
