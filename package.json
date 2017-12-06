@@ -3,6 +3,9 @@
   "version": "0.0.2",
   "description": "simple object field validator",
   "main": "dist/iidesuka.min.js",
+  "files": [
+    "dist/iidesuka.min.js"
+  ],
   "scripts": {
     "build": "browserify --node --standalone iidesuka -t [ babelify [ babel-preset-env ] ] index.js -o dist/iidesuka.js",
     "postbuild": "npm run uglify",
