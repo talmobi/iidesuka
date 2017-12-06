@@ -5,9 +5,6 @@ function iidesuka ( obj, opts ) {
     _messages: []
   }
 
-  // TODO refactor to not throw but return "is not an object" message?
-  if ( typeof obj !== 'object' ) throw new Error( 'obj must be of type "object"' )
-
   opts = opts || {}
   if ( opts.bail ) api._bail = true
 
@@ -236,6 +233,7 @@ function dottribute ( obj, attrs ) {
   for ( var i = 0; i < split.length; ++i ) {
     var key = split[ i ]
     if (
+      ( t != null ) &&
       ( typeof t[ key ] !== 'undefined' )
     ) {
       t = t[ key ]
@@ -245,6 +243,7 @@ function dottribute ( obj, attrs ) {
   }
 
   if ( t === obj ) return undefined
+
   return t
 }
 
