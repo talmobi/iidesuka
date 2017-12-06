@@ -5,6 +5,7 @@ function iidesuka ( obj, opts ) {
     _messages: []
   }
 
+  // TODO refactor to not throw but return "is not an object" message?
   if ( typeof obj !== 'object' ) throw new Error( 'obj must be of type "object"' )
 
   opts = opts || {}
