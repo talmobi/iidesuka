@@ -38,14 +38,73 @@ test( 'test empty object', function ( t ) {
   t.end()
 } )
 
-test( 'test invalid object', function ( t ) {
-  var o = 'string'
-  try {
-    iidesuka( o ).end()
-    t.fail()
-  } catch ( err ) {
-    t.pass()
-  }
+test( 'test non objects', function ( t ) {
+  var err = ''
+
+  var o = function () {}
+  o.foo = 5
+  o.bar = 11
+
+  var err = (
+    iidesuka( o )
+    .gt( 'bar', 10, 'bar length was 10 or smaller' )
+    .gt( 'foo', 10, 'foo length was 10 or smaller' )
+    .end()
+  ).toString()
+
+  t.ok(
+    err.indexOf( 'bar length was 10 or smaller' ) === -1,
+    'OK no bar errors found!'
+  )
+
+  t.ok(
+    err.indexOf( 'foo length was 10 or smaller' ) > 0,
+    'OK foo errors found!'
+  )
+
+  var s = 'string'
+
+  var err = (
+    iidesuka( s )
+    .lt( 'length', 10, 'string length greater than 10' )
+    .gt( 'length', 10, 'string length less than 10' )
+    .end()
+  ).toString()
+
+  t.ok(
+    err.indexOf( 'string length greater than 10' ) === -1,
+    'OK foo errors found!'
+  )
+
+  t.ok(
+    err.indexOf( 'string length less than 10' ) > 0,
+    'OK no bar errors found!'
+  )
+
+  var err = (
+    iidesuka()
+    .lt( 'length', 10, 'string length greater than 10' )
+    .gt( 'length', 10, 'string length less than 10' )
+    .end()
+  ).toString()
+
+  t.ok(
+    err,
+    'OK errors found!'
+  )
+
+  var err = (
+    iidesuka( null )
+    .lt( 'length', 10, 'string length greater than 10' )
+    .gt( 'length', 10, 'string length less than 10' )
+    .end()
+  ).toString()
+
+  t.ok(
+    err,
+    'OK errors found!'
+  )
+
   t.end()
 } )
 
