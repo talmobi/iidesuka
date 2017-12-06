@@ -1,6 +1,6 @@
 {
   "name": "iidesuka",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "description": "simple object field validator",
   "main": "dist/iidesuka.min.js",
   "files": [
