@@ -2,7 +2,7 @@ var iidesuka = require( './dist/iidesuka.min.js' )
 
 var req = {
   body: {
-    userID: 'foo',
+    // userID: 'foo',
     userIDs: [ { id: 'foo' }, { id: 'bar' } ]
   }
 }

@@ -1,4 +1,4 @@
-#  TKL - simple and incomplete tkl api
+#  いいですか iidesuka - simple field validator
 
 ## Simple to use
 ```bash
@@ -6,7 +6,7 @@ var iidesuka = require( 'iidesuka' )
 
 var req = {
   body: {
-    userID: 'foo',
+    // userID: 'foo',
     userIDs: [ { id: 'foo' }, { id: 'bar' } ]
   }
 }
@@ -29,6 +29,7 @@ if ( err ) console.error( err.toString() )
 ## sample output
 ```
 Invalid fields:
+  typeof body.userID !== string: userID is not a string
   id not equal: id was not foo
 ```
 
