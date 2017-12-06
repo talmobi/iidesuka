@@ -105,7 +105,7 @@ function iidesuka ( obj, opts ) {
       return undefined
     }
 
-    var message = 'Invalid fields: \n'
+    var message = 'Error invalid fields: \n'
     api._messages.forEach( function ( msg ) {
       message += ( '  ' + msg.trim() + '\n' )
     } )
