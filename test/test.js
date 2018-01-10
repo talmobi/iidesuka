@@ -345,6 +345,25 @@ test( 'test successful forEach', function ( t ) {
   t.end()
 } )
 
+test.only( 'test nested nonexisting forEach', function ( t ) {
+  var user = {
+  }
+
+  var err = (
+    iidesuka( user )
+    .instanceof( 'list', Array, 'fail1' )
+    .forEach( 'list' )
+      .typeof( 'name', 'string', 'xaxa' )
+      .done()
+    .end()
+  )
+
+  t.ok( err.message.indexOf( 'fail1' ) > 0, 'list was not instanceof Array' )
+  t.ok( err.message.indexOf( 'xaxa' ) === -1, 'no items looped for non Array' )
+
+  t.end()
+} )
+
 test( 'basic usecase', function ( t ) {
   var req = {
     body: {
