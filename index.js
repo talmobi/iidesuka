@@ -178,7 +178,7 @@ function iidesuka ( obj, opts ) {
       if ( api._bail && api._messages.length > 0 ) return api
 
       if ( !( target instanceof Array ) ) {
-        api._messages.push( 'forEach failed ' + attrs + ' is not an Array : ' + message )
+        api._messages.push( 'forEach failed ' + attrs + ' is not an Array.' )
         return api
       }
 
