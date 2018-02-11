@@ -4,6 +4,11 @@ const test = require( 'tape' )
 
 var iidesuka
 
+if ( process.env.TEST_TARGET === 'dev' ) {
+  console.log( 'testing source index.js' )
+  iidesuka = require( path.join( __dirname, '../version2.js' ) )
+}
+
 if ( process.env.TEST_TARGET === 'source' ) {
   console.log( 'testing source index.js' )
   iidesuka = require( path.join( __dirname, '../index.js' ) )
@@ -345,7 +350,7 @@ test( 'test successful forEach', function ( t ) {
   t.end()
 } )
 
-test.only( 'test nested nonexisting forEach', function ( t ) {
+test( 'test nested nonexisting forEach', function ( t ) {
   var user = {
   }
 
