@@ -6,7 +6,7 @@ var iidesuka
 
 if ( process.env.TEST_TARGET === 'dev' ) {
   console.log( 'testing source index.js' )
-  iidesuka = require( path.join( __dirname, '../version2.js' ) )
+  iidesuka = require( path.join( __dirname, '../index.js' ) )
 }
 
 if ( process.env.TEST_TARGET === 'source' ) {
@@ -314,7 +314,7 @@ test( 'test successful forEach', function ( t ) {
   t.end()
 } )
 
-test( 'test successful forEach', function ( t ) {
+test( 'test successful forEach 2', function ( t ) {
   var user = {
     list: [
       { name: 'dave', age: 17 },
@@ -335,7 +335,7 @@ test( 'test successful forEach', function ( t ) {
       .gte( 'age', 18, 'age was less than 18' )
       .done()
     .typeof( 'name', 'string', 'fail5' )
-    .e( 'name', 'pinky', 'fail6' )
+    .e( 'name', 'pinky', 'fail66' )
     .end()
   )
 
@@ -344,7 +344,140 @@ test( 'test successful forEach', function ( t ) {
   t.ok( err.message.indexOf( 'name was not "dave"' ) > 0, 'name was not "dave"' )
   t.ok( err.message.indexOf( 'age was less than 18' ) > 0, 'age was less than 18' )
   t.ok( err.message.indexOf( 'fail5' ) > 0 )
-  t.ok( err.message.indexOf( 'fail6' ) > 0 )
+  t.ok( err.message.indexOf( 'fail66' ) > 0 )
+  t.ok( err.message.indexOf( 'xaxa' ) === -1, 'no other errors' )
+
+  t.end()
+} )
+
+test( 'test nested successful forEach', function ( t ) {
+  var user = {
+    list: [
+      [
+        { name: 'dave', age: 17 }
+      ],
+      [
+        { name: 'blinky', age: 18 }
+      ],
+      [
+        { name: 'dave', age: 20 },
+        { name: 'dave', age: 20 }
+      ]
+    ],
+    list2: [
+      [
+        [
+          1,
+          2,
+          3
+        ]
+      ]
+    ],
+    list3: [
+      [
+        [
+          { list: [ { value: 5, animal: 'whale' } ] },
+          { list: [ { value: 5, animal: 'rabbit' } ] },
+          { list: [ { value: 5, animal: 'whale' } ] }
+        ],
+        [
+          { list: [ { value: 5, animal: 'whale' } ] },
+          { list: [ { value: 5, animal: 'whale' } ] },
+          { list: [ { value: 5, animal: 'whale' } ] }
+        ],
+        [
+          { list: [ { value: 5, animal: 'whale' } ] },
+          { list: [ { value: 5, animal: 'pacman' } ] },
+          { list: [ { value: 5, animal: 'pacman' } ] }
+        ]
+      ]
+    ]
+  }
+
+  var err = (
+    iidesuka( user )
+    .typeof( 'name', 'string', 'fail1' )
+    .e( 'name', 'pinky', 'fail2' )
+    .instanceof( 'list', Array, 'xaxa' )
+    .forEach( 'list' )
+      .nobail()
+      .forEach( '.' )
+        .nobail()
+        .typeof( 'name', 'string', 'xaxa' )
+        .typeof( 'age', 'number', 'xaxa' )
+        .e( 'name', 'dave', 'name was not "dave"' )
+        .gte( 'age', 18, 'age was less than 18' )
+        .done()
+      .done()
+    .forEach( 'list2' )
+      .nobail()
+      .forEach( '.' )
+        .nobail()
+        .forEach( '.' )
+          .nobail()
+          .gt( '.', 2, 'superman' )
+          .done()
+        .done()
+      .done()
+    .forEach( 'list2' )
+      .nobail()
+      .forEach( '.' )
+        .nobail()
+        .forEach( '.' )
+          .nobail()
+          .gt( '.', 0, 'batman' )
+          .done()
+        .done()
+      .done()
+    .forEach( 'list3' )
+      .nobail()
+      .forEach( '.' )
+        .nobail()
+        .forEach( '.' )
+          .nobail()
+          .forEach( 'list' )
+            .nobail()
+            .nobail()
+            .typeof( 'animal', 'string', 'no animals!' )
+            .done()
+          .done()
+        .done()
+      .done()
+    .forEach( 'list3' )
+      .nobail()
+      .forEach( '.' )
+        .nobail()
+        .forEach( '.' )
+          .nobail()
+          .forEach( 'list' )
+            .nobail()
+            .e( 'animal', 'whale', 'no whales' )
+            .e( 'value', 5, 'invalid value' )
+            .done()
+          .done()
+        .done()
+      .done()
+    .typeof( 'name', 'string', 'fail5' )
+    .e( 'name', 'pinky', 'fail666' )
+    .end()
+  )
+
+  // TODO
+  console.log()
+  console.log( err + '' )
+  console.log()
+
+  t.ok( err.message.indexOf( 'fail1' ) > 0 )
+  t.ok( err.message.indexOf( 'fail2' ) > 0 )
+  t.ok( err.message.indexOf( 'name was not "dave"' ) > 0, 'name was not "dave"' )
+  t.ok( err.message.indexOf( 'age was less than 18' ) > 0, 'age was less than 18' )
+  t.ok( err.message.indexOf( 'fail5' ) > 0 )
+  t.ok( err.message.indexOf( 'fail666' ) > 0 )
+  t.ok( err.message.indexOf( 'superman' ) > 0 )
+  t.ok( err.message.indexOf( 'batman' ) === -1 )
+  t.ok( err.message.indexOf( 'no animals' ) === -1 )
+  t.ok( err.message.indexOf( 'no whales' ) > 0 )
+  t.ok( err.message.indexOf( 'invalid value' ) === -1 )
   t.ok( err.message.indexOf( 'xaxa' ) === -1, 'no other errors' )
 
   t.end()
@@ -387,6 +520,99 @@ test( 'basic usecase', function ( t ) {
   )
 
   t.equal( err, undefined )
+
+  t.end()
+} )
+
+test( 'basic usecase error', function ( t ) {
+  var req = {
+    body: {
+      userID: 'foo',
+      // userIDs: [ 'foo', 'bar', 'zoo' ]
+      userIDs: [
+        { name: 'foo' },
+        { name: 'foo' }
+      ]
+    }
+  }
+
+  var err = (
+    iidesuka( req )
+    .typeof( 'body', 'object', 'request body missing' )
+    .typeof( 'body.userID', 'string', 'userID is not a string' )
+    .instanceof( 'body.userIDs', Array, 'userIDs is not an array' )
+    .ne( 'body.userIDs.length', 0, 'userIDs array is empty' )
+    .forEach( 'body.userIDs' )
+      .typeof( '.', 'string' )
+      .gte( '.length', 3, 'invalid length' )
+      .e( '.', 'foo' )
+      .end()
+    .end()
+  )
+
+  if ( err ) {
+    console.log()
+    console.log( err.toString() )
+    console.log()
+  }
+
+  t.equal(
+    err.toString().split( /\s+/ ).join( '' ).trim(),
+    `
+    Error (iidesuka) invalid fields:
+    .typeof .body.userIDs[0] is not: string
+    .gte .body.userIDs[0].length is not greater than or equal to: 3, was undefined: invalid length
+    .e .body.userIDs[0] is not equal to foo
+    .typeof .body.userIDs[1] is not: string
+    .gte .body.userIDs[1].length is not greater than or equal to: 3, was undefined: invalid length
+    .e .body.userIDs[1] is not equal to foo
+    `.split( /\s+/ ).join( '' ).trim()
+  )
+
+  t.end()
+} )
+
+test( 'basic usecase 2', function ( t ) {
+  var req = {
+    body: {
+      userID: 'foo',
+      userIDs: [
+        { name: 'foo' },
+        { name: 'zoo' }
+      ]
+    }
+  }
+
+  var err = (
+    iidesuka( req )
+    .typeof( 'body', 'object', 'request body missing' )
+    .typeof( 'body.userID', 'string', 'userID is not a string' )
+    .instanceof( 'body.userIDs', Array, 'userIDs is not an array' )
+    .ne( 'body.userIDs.length', 0, 'userIDs array is empty' )
+    .forEach( 'body.userIDs' )
+      .typeof( 'name', 'string' )
+      .gte( 'name.length', 3 )
+      .lte( 'name.length', 3 )
+      .lt( 'name.length', 4 )
+      .gt( 'name.length', 2 )
+      .e( '.name', 'foo' )
+      .end()
+    .end()
+  )
+
+  if ( err ) {
+    console.log()
+    console.log( err.toString() )
+    console.log()
+  }
+
+  t.equal(
+    err.toString().split( /\s+/ ).join( '' ).trim(),
+    `
+    Error (iidesuka) invalid fields:
+    .e .body.userIDs[1].name is not equal to foo
+    `.split( /\s+/ ).join( '' ).trim()
+  )
 
   t.end()
 } )
