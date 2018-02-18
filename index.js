@@ -53,6 +53,18 @@ function iidesuka ( source ) {
   api.finish = api.end
 
   api.nobail = function () {
+    state.tasks.push( {
+      type: 'nobail'
+    } )
+
+    return api
+  }
+
+  api.bail = function () {
+    state.tasks.push( {
+      type: 'bail'
+    } )
+
     return api
   }
 
@@ -68,6 +80,8 @@ function iidesuka ( source ) {
 
       return undefined
     }
+
+    var shouldBail = false
 
     var task
     var i = 0
@@ -85,6 +99,11 @@ function iidesuka ( source ) {
         log( s )
         target = s.target[ s.index ]
 
+        if ( s && s.shouldBail && errors.length > s.errorsStartedWith ) {
+          console.log( 'bailing from loop' )
+          break
+        }
+
         if ( s.index >= s.target.length ) {
           // loop finished on the stack
           i = s.endIndex
@@ -92,11 +111,34 @@ function iidesuka ( source ) {
           log( 'stack popped to endIndex: ' + s.endIndex )
           continue
         }
+      } else {
+        if ( shouldBail && errors.length > 0 ) {
+          console.log( 'bailing iidesuka' )
+          break
+        }
       }
 
       log( 'task type: ' + task.type )
 
       switch ( task.type ) {
+        case 'nobail':
+          var s = getTopStack()
+          if ( s ) {
+            s.shouldBail = false
+          } else {
+            shouldBail = false
+          }
+          break
+
+        case 'bail':
+          var s = getTopStack()
+          if ( s ) {
+            s.shouldBail = true
+          } else {
+            shouldBail = true
+          }
+          break
+
         case 'forEach':
           var [ query, detail ] = task.args
 
@@ -138,7 +180,9 @@ function iidesuka ( source ) {
             trace: q,
             startIndex: i,
             index: 0,
-            target: dottribute( target, query )
+            target: dottribute( target, query ),
+            shouldBail: true, // bail by default from loops
+            errorsStartedWith: errors.length
           } )
 
           log( list )
