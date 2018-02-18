@@ -1,346 +1,645 @@
-var internalApi = {}
+module.exports = iidesuka
 
-function iidesuka ( obj, opts ) {
-  var api = {
-    _messages: []
+var debugging = false
+
+function log () {
+  if ( debugging ) {
+    console.log.apply( this, arguments )
+  }
+}
+
+function iidesuka ( source ) {
+  var state = {
+    level: 0,
+    source: source,
+    tasks: []
   }
 
-  opts = opts || {}
-  if ( opts.bail ) api._bail = true
+  var api = new Error()
 
-  api.typeof = function ( attrs, type, message ) {
-    if ( api._bail && api._messages.length > 0 ) return api
+  // Object.defineProperty( api, 'message', {
+  //   value: ( 'iidesuka was not finished; did you call `.end()`?' )
+  // } )
 
-    var msg = internalApi.typeof( obj, attrs, type, message )
-    if ( msg ) {
-      api._messages.push( msg )
-    }
+  api.message = ( 'iidesuka was not finished; did you call `.end()`?' )
+
+  api.forEach = function ( query, detail ) {
+    state.level++
+
+    state.tasks.push( {
+      type: 'forEach',
+      args: [ query, detail ]
+    } )
 
     return api
-  }
-
-  api.instanceof = function ( attrs, instance, message ) {
-    if ( api._bail && api._messages.length > 0 ) return api
-
-    var msg = internalApi.instanceof( obj, attrs, instance, message )
-    if ( msg ) {
-      api._messages.push( msg )
-    }
-
-    return api
-  }
-
-  api.gt = function ( attrs, number, message ) {
-    if ( api._bail && api._messages.length > 0 ) return api
-
-    var msg = internalApi.gt( obj, attrs, number, message )
-    if ( msg ) {
-      api._messages.push( msg )
-    }
-
-    return api
-  }
-
-  api.gte = function ( attrs, number, message ) {
-    if ( api._bail && api._messages.length > 0 ) return api
-
-    var msg = internalApi.gte( obj, attrs, number, message )
-    if ( msg ) {
-      api._messages.push( msg )
-    }
-
-    return api
-  }
-
-  api.lt = function ( attrs, number, message ) {
-    if ( api._bail && api._messages.length > 0 ) return api
-
-    var msg = internalApi.lt( obj, attrs, number, message )
-    if ( msg ) {
-      api._messages.push( msg )
-    }
-
-    return api
-  }
-
-  api.lte = function ( attrs, number, message ) {
-    if ( api._bail && api._messages.length > 0 ) return api
-
-    var msg = internalApi.lte( obj, attrs, number, message )
-    if ( msg ) {
-      api._messages.push( msg )
-    }
-
-    return api
-  }
-
-  api.e = function ( attrs, value, message ) {
-    if ( api._bail && api._messages.length > 0 ) return api
-
-    var msg = internalApi.e( obj, attrs, value, message )
-    if ( msg ) {
-      api._messages.push( msg )
-    }
-
-    return api
-  }
-
-  api.ne = function ( attrs, value, message ) {
-    if ( api._bail && api._messages.length > 0 ) return api
-
-    var msg = internalApi.ne( obj, attrs, value, message )
-    if ( msg ) {
-      api._messages.push( msg )
-    }
-
-    return api
-  }
-
-  api.bail = function () {
-    api._bail = true
   }
 
   api.end = function () {
-    if ( api._messages.length === 0 ) {
-      return undefined
-    }
+    if ( state.level === 0 ) {
+      return finish()
+    } else {
+      state.level--
 
-    var message = 'Error invalid fields: \n'
-    api._messages.forEach( function ( msg ) {
-      message += ( '  ' + msg.trim() + '\n' )
-    } )
-
-    var o = {
-      message: message
-    }
-
-    o.toString = function () {
-      return message
-    }
-
-    return o
-  }
-
-  api.forEach = function ( attrs ) {
-    var subapi = {
-      bail: true // bail on first array item that fails by default
-    }
-
-    var chains = []
-
-    subapi.typeof = function () {
-      chains.push( { fn: 'typeof', args: arguments } )
-      return subapi
-    }
-
-    subapi.instanceof = function () {
-      chains.push( { fn: 'instanceof', args: arguments } )
-      return subapi
-    }
-
-    subapi.gt = function () {
-      chains.push( { fn: 'gt', args: arguments } )
-      return subapi
-    }
-
-    subapi.gte = function () {
-      chains.push( { fn: 'gte', args: arguments } )
-      return subapi
-    }
-
-    subapi.lt = function () {
-      chains.push( { fn: 'lt', args: arguments } )
-      return subapi
-    }
-
-    subapi.lte = function () {
-      chains.push( { fn: 'lte', args: arguments } )
-      return subapi
-    }
-
-    subapi.e = function () {
-      chains.push( { fn: 'e', args: arguments } )
-      return subapi
-    }
-
-    subapi.ne = function () {
-      chains.push( { fn: 'ne', args: arguments } )
-      return subapi
-    }
-
-    subapi.nobail = function () {
-      subapi.bail = false // check every array element
-      return subapi
-    }
-
-    var target = dottribute( obj, attrs )
-    subapi.done = function () {
-      if ( api._bail && api._messages.length > 0 ) return api
-
-      if ( !( target instanceof Array ) ) {
-        api._messages.push( 'forEach failed ' + attrs + ' is not an Array.' )
-        return api
-      }
-
-      var messages = []
-
-      var item, i, j, chain, msg
-      for ( i = 0; i < target.length; ++i ) {
-        item = target[ i ]
-
-        for ( j = 0; j < chains.length; ++j ) {
-          chain = chains[ j ]
-          msg = internalApi[ chain.fn ].apply( this, parseArgs( item, chain.args ) )
-          if ( msg ) {
-            messages.push( msg )
-          }
-        }
-
-        if ( subapi.bail && messages.length !== 0 ) {
-          // errors have occurred on this item -- skip the rest
-          i = target.length
-        }
-      }
-
-      // add the messages to the origin api
-      api._messages = api._messages.concat( messages )
+      state.tasks.push( {
+        type: 'end'
+      } )
 
       return api
     }
+  }
 
-    return subapi
+  // backwards compatability
+  api.done = api.end
+  api.finish = api.end
+
+  api.nobail = function () {
+    return api
+  }
+
+  function finish () {
+    var errors = []
+
+    var stack = []
+
+    function getTopStack() {
+      if ( stack.length > 0 ) {
+        return stack[ stack.length - 1 ]
+      }
+
+      return undefined
+    }
+
+    var task
+    var i = 0
+    for ( i = 0; i < state.tasks.length; ++i ) {
+      log( 'task index: ' + i  + ' / ' + state.tasks.length )
+
+      task = state.tasks[ i ]
+
+      var target = source
+
+      if ( stack.length > 0 ) {
+        log( 'has stack' )
+
+        var s = stack[ stack.length - 1 ]
+        log( s )
+        target = s.target[ s.index ]
+
+        if ( s.index >= s.target.length ) {
+          // loop finished on the stack
+          i = s.endIndex
+          stack.pop()
+          log( 'stack popped to endIndex: ' + s.endIndex )
+          continue
+        }
+      }
+
+      log( 'task type: ' + task.type )
+
+      switch ( task.type ) {
+        case 'forEach':
+          var [ query, detail ] = task.args
+
+          var list = dottribute( target, query )
+
+          if ( ! ( list instanceof Array ) ) {
+            errors.push(
+              '.forEach ' + query + ' was not an Array'
+            )
+
+            while ( task && task.type !== 'end' ) {
+              task = state.tasks[ ++i ]
+            }
+
+            if ( task && task.type === 'end' ) {
+              continue
+            } else {
+              return api
+            }
+          }
+
+          var s = getTopStack()
+          var q = ''
+
+          if ( s && s.trace ) {
+            q = s.trace + '[' + s.index + ']'
+          }
+
+          if ( query !== '.' && query ) {
+            if ( query[ 0 ] === '.' ) {
+              q += query
+            } else {
+              q += '.' + query
+            }
+          }
+
+          stack.push( {
+            // source: target,
+            trace: q,
+            startIndex: i,
+            index: 0,
+            target: dottribute( target, query )
+          } )
+
+          log( list )
+
+          log( 'stack pushed' )
+
+          break
+
+        case 'end':
+          var s = getTopStack()
+          s.endIndex = i
+          log( 'set endIndex: ' + s.endIndex )
+          i = s.startIndex
+          s.index++
+          log( 'resetting task index to stack startIndex' )
+          break
+
+        case 'typeof':
+          var err = _typeof( task, target, getTopStack() )
+          if ( err ) errors.push( err )
+          break
+
+        case 'instanceof':
+          var err = _instanceof( task, target )
+          if ( err ) errors.push( err )
+          break
+
+        case 'e':
+          var err = _e( task, target, getTopStack() )
+          if ( err ) errors.push( err )
+          break
+
+        case 'ne':
+          var err = _ne( task, target, getTopStack() )
+          if ( err ) errors.push( err )
+          break
+
+        case 'gt':
+          var err =  _gt( task, target, getTopStack() )
+          if ( err ) errors.push( err )
+          break
+
+        case 'gte':
+          var err =  _gte( task, target, getTopStack() )
+          if ( err ) errors.push( err )
+          break
+
+        case 'lt':
+          var err =  _lt( task, target, getTopStack() )
+          if ( err ) errors.push( err )
+          break
+
+        case 'lte':
+          var err =  _lte( task, target, getTopStack() )
+          if ( err ) errors.push( err )
+          break
+
+        default:
+          throw new Error( 'iidesuka unknown task type: ' + type )
+      }
+    }
+
+    // no errors, everything is OK
+    if ( errors.length === 0 ) return undefined
+
+    var err = new Error()
+
+    err.message = 'Error (iidesuka) invalid fields: \n'
+
+    errors.forEach( function ( msg ) {
+      err.message += ( '  ' + msg.trim() + '\n' )
+    } )
+
+    err.toString = function () {
+      return err.message
+    }
+
+    return err
+  }
+
+  api.typeof = function ( query, type, detail ) {
+    state.tasks.push( {
+      type: 'typeof',
+      args: [ query, type, detail ]
+    } )
+
+    return api
+  }
+
+  api.instanceof = function ( query, instance, detail ) {
+    state.tasks.push( {
+      type: 'instanceof',
+      args: [ query, instance, detail ]
+    } )
+
+    return api
+  }
+
+  api.e = function ( query, value, detail ) {
+    state.tasks.push( {
+      type: 'e',
+      args: [ query, value, detail ]
+    } )
+
+    return api
+  }
+
+  api.ne = function ( query, value, detail ) {
+    state.tasks.push( {
+      type: 'ne',
+      args: [ query, value, detail ]
+    } )
+
+    return api
+  }
+
+  api.gt = function ( query, number, detail ) {
+    state.tasks.push( {
+      type: 'gt',
+      args: [ query, number, detail ]
+    } )
+
+    return api
+  }
+
+  api.gte = function ( query, number, detail ) {
+    state.tasks.push( {
+      type: 'gte',
+      args: [ query, number, detail ]
+    } )
+
+    return api
+  }
+
+  api.lt = function ( query, number, detail ) {
+    state.tasks.push( {
+      type: 'lt',
+      args: [ query, number, detail ]
+    } )
+
+    return api
+  }
+
+  api.lte = function ( query, number, detail ) {
+    state.tasks.push( {
+      type: 'lte',
+      args: [ query, number, detail ]
+    } )
+
+    return api
   }
 
   return api
 }
 
-function parseArgs ( obj, args ) {
-  return (
-    [ obj ]
-    .concat(
-      Object.keys( args ).map( function ( key ) {
-        return args[ key ]
-      } )
-    )
-  )
-}
+function dottribute ( source, query ) {
+  if ( typeof query !== 'string' ) {
+    return source
+  }
 
-function dottribute ( obj, attrs ) {
-  var split = attrs.split( '.' )
+  var t = source
 
-  var t = obj
+  if ( !query || query === '.' ) {
+    return t
+  }
 
-  for ( var i = 0; i < split.length; ++i ) {
-    var key = split[ i ]
+  var attributes = query.split( '.' )
+
+  if ( !t ) return t
+
+  attributes.forEach( function ( attr ) {
     if (
       ( t != null ) &&
-      ( typeof t[ key ] !== 'undefined' )
+      ( typeof t[ attr ] !== 'undefined' )
     ) {
-      t = t[ key ]
+      t = t[ attr ]
     } else {
       return undefined
     }
-  }
+  } )
 
-  if ( t === obj ) return undefined
+  if ( t === source ) return undefined
 
   return t
 }
 
-// typeof
-internalApi.typeof = function _typeof ( obj, attrs, type, message ) {
-  var t = dottribute( obj, attrs )
+function _typeof ( task, target, stack ) {
+  var [ query, type, detail ] = task.args
 
-  if ( typeof t !== type ) {
-    return ( 'typeof ' + attrs + ' !== ' + type + ': ' + message )
+  var t = dottribute( target, query )
+
+  if ( typeof t === type ) return undefined
+
+  var q = ''
+
+  if ( stack && stack.trace ) {
+    q = stack.trace + '[' + stack.index + ']'
   }
-}
 
-// instanceof
-internalApi.instanceof = function _instanceof ( obj, attrs, instance, message ) {
-  var t = dottribute( obj, attrs )
-
-  if ( !t ) {
-    return ( 'instanceof ' + attrs + ' is ' + t + ': ' + message )
-  } else {
-    if ( !( t instanceof instance ) ) {
-      return ( attrs + ' not instanceof: ' + message )
-    }
-  }
-}
-
-// greater than
-internalApi.gt = function _gt ( obj, attrs, number, message ) {
-  var t = dottribute( obj, attrs )
-
-  if ( typeof t !== 'number' ) {
-    return ( attrs + ' is not a number: ' + message )
-  } else {
-    if ( t > number ) {
+  if ( query !== '.' && query ) {
+    if ( query[ 0 ] === '.' ) {
+      q += query
     } else {
-      return ( attrs + ' greater than ' + number + ': ' + message )
+      q += '.' + query
     }
   }
+
+  var msg = (
+    '.typeof ' + q + ' is not: ' + type
+  )
+
+  if ( detail ) msg += ': ' + detail
+
+  return msg
 }
 
-// greater than or equal
-internalApi.gte = function _gte ( obj, attrs, number, message ) {
-  var t = dottribute( obj, attrs )
+function _instanceof ( task, target, stack ) {
+  var [ query, instance, detail ] = task.args
 
-  if ( typeof t !== 'number' ) {
-    return ( attrs + ' is not a number: ' + message )
-  } else {
-    if ( t >= number ) {
+  var t = dottribute( target, query )
+
+  if ( t instanceof instance ) return undefined
+
+  var q = ''
+
+  if ( stack && stack.trace ) {
+    q = stack.trace + '[' + stack.index + ']'
+  }
+
+  if ( query !== '.' && query ) {
+    if ( query[ 0 ] === '.' ) {
+      q += query
     } else {
-      return ( attrs + ' greater than or equal to ' + number + ': ' + message )
+      q += '.' + query
     }
   }
+
+  var msg = (
+    '.instanceof ' + q + ' is not: ' + instance
+  )
+
+  if ( detail ) msg += ': ' + detail
+
+  return msg
 }
 
-// less than
-internalApi.lt = function _lt ( obj, attrs, number, message ) {
-  var t = dottribute( obj, attrs )
+function _e ( task, target, stack ) {
+  var [ query, value, detail ] = task.args
 
-  if ( typeof t !== 'number' ) {
-    return ( attrs + ' is not a number: ' + message )
-  } else {
-    if ( t < number ) {
+  var t = dottribute( target, query )
+
+  if ( t === value ) return undefined
+
+  var q = ''
+
+  if ( stack && stack.trace ) {
+    q = stack.trace + '[' + stack.index + ']'
+  }
+
+  if ( query !== '.' && query ) {
+    if ( query[ 0 ] === '.' ) {
+      q += query
     } else {
-      return ( attrs + ' less than ' + number + ': ' + message )
+      q += '.' + query
     }
   }
+
+  var msg = (
+    '.e ' + q + ' is not equal to ' + value
+  )
+
+  if ( detail ) msg += ': ' + detail
+
+  return msg
 }
 
-// less than or equal
-internalApi.lte = function _lte ( obj, attrs, number, message ) {
-  var t = dottribute( obj, attrs )
+function _ne ( task, target, stack ) {
+  var [ query, value, detail ] = task.args
 
-  if ( typeof t !== 'number' ) {
-    return ( attrs + ' is not a number: ' + message )
-  } else {
-    if ( t <= number ) {
+  var t = dottribute( target, query )
+
+  if ( t !== value ) return undefined
+
+  var q = ''
+
+  if ( stack && stack.trace ) {
+    q = stack.trace + '[' + stack.index + ']'
+  }
+
+  if ( query !== '.' && query ) {
+    if ( query[ 0 ] === '.' ) {
+      q += query
     } else {
-      return ( attrs + ' less than or equal to' + number + ': ' + message )
+      q += '.' + query
     }
   }
+
+  var msg = (
+    '.ne ' + q + ' is equal to ' + value
+  )
+
+  if ( detail ) msg += ': ' + detail
+
+  return msg
 }
 
-// equal
-internalApi.e = function _e ( obj, attrs, value, message ) {
-  var t = dottribute( obj, attrs )
+function _gt ( task, target, stack ) {
+  var [ query, number, detail ] = task.args
 
-  if ( t !== value ) {
-    return ( attrs + ' not equal: ' + message )
+  var t = dottribute( target, query )
+
+  if ( t > number ) return undefined
+
+  var q = ''
+
+  if ( stack && stack.trace ) {
+    q = stack.trace + '[' + stack.index + ']'
   }
-}
 
-// not equal
-internalApi.ne = function _ne ( obj, attrs, value, message ) {
-  var t = dottribute( obj, attrs )
-
-  if ( t === value ) {
-    return ( attrs + ' equal: ' + message )
+  if ( query !== '.' && query ) {
+    if ( query[ 0 ] === '.' ) {
+      q += query
+    } else {
+      q += '.' + query
+    }
   }
+
+  var msg = (
+    '.gt ' + q + ' is not greater than: ' + number + ', was ' + t
+  )
+
+  if ( detail ) msg += ': ' + detail
+
+  return msg
 }
 
-module.exports = iidesuka
+function _gte ( task, target, stack ) {
+  var [ query, number, detail ] = task.args
+
+  var t = dottribute( target, query )
+
+  if ( t >= number ) return undefined
+
+  var q = ''
+
+  if ( stack && stack.trace ) {
+    q = stack.trace + '[' + stack.index + ']'
+  }
+
+  if ( query !== '.' && query ) {
+    if ( query[ 0 ] === '.' ) {
+      q += query
+    } else {
+      q += '.' + query
+    }
+  }
+
+  var msg = (
+    '.gte ' + q + ' is not greater than or equal to: ' + number + ', was ' + t
+  )
+
+  if ( detail ) msg += ': ' + detail
+
+  return msg
+}
+
+function _lt ( task, target, stack ) {
+  var [ query, number, detail ] = task.args
+
+  var t = dottribute( target, query )
+
+  if ( t < number ) return undefined
+
+  var q = ''
+
+  if ( stack && stack.trace ) {
+    q = stack.trace + '[' + stack.index + ']'
+  }
+
+  if ( query !== '.' && query ) {
+    if ( query[ 0 ] === '.' ) {
+      q += query
+    } else {
+      q += '.' + query
+    }
+  }
+
+  var msg = (
+    '.lt ' + q + ' is not less than: ' + number + ', was ' + t
+  )
+
+  if ( detail ) msg += ': ' + detail
+
+  return msg
+}
+
+function _lte ( task, target, stack ) {
+  var [ query, number, detail ] = task.args
+
+  var t = dottribute( target, query )
+
+  if ( t <= number ) return undefined
+
+  var q = ''
+
+  if ( stack && stack.trace ) {
+    q = stack.trace + '[' + stack.index + ']'
+  }
+
+  if ( query !== '.' && query ) {
+    if ( query[ 0 ] === '.' ) {
+      q += query
+    } else {
+      q += '.' + query
+    }
+  }
+
+  var msg = (
+    '.lte ' + q + ' is not less than or equal to: ' + number + ', was ' + t
+  )
+
+  if ( detail ) msg += ': ' + detail
+
+  return msg
+}
+
+function test () {
+  var data = {
+    name: 'giraffe',
+    list: [ 2, 3, 1 ],
+    list2: [
+      { val: 1 },
+      { val: 2 },
+      { val: 3 }
+    ],
+    list3: [
+      [ { val: 11 } ],
+      [ { val: 22 } ],
+      [ { val: 33 } ]
+    ],
+    list4: [
+      [
+        [
+          1,
+          2,
+          3
+        ]
+      ]
+    ]
+  }
+
+  var err = (
+    iidesuka( data )
+    .e( 'name', 'giraffe' )
+    .forEach( 'list' )
+      .gt( '.', 0 )
+      .end()
+    .forEach( 'list2' )
+      .gt( 'val', 0 )
+      .end()
+
+    .forEach( 'list3' )
+      .nobail()
+      .forEach( '.' )
+        .nobail()
+        .gt( 'val', 10 )
+        .end()
+      .end()
+
+    .forEach( 'list4' )
+      .nobail()
+      .forEach( '.' )
+        .forEach( '.' )
+          .gt( '.', 2 )
+          .gt( '.', 0 )
+          .gt( '.', 2 )
+          .end()
+        .end()
+      .end()
+
+    .end()
+  )
+
+  // var err = (
+  //   iidesuka( data )
+  //   .e( 'name', 'giraffe' )
+  //   .forEach( 'list2' )
+  //     .gt( 'val', 0 )
+  //     .end()
+  //   .forEach( 'list3' )
+  //     .nobail()
+  //     .forEach( '.' )
+  //       .nobail()
+  //       .gt( 'val', 8 )
+  //       .end()
+  //     .end()
+  //   .end()
+  // )
+
+  log( ' ======== ' )
+  log( err + '' )
+}
+
+test()
