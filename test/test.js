@@ -543,6 +543,7 @@ test( 'basic usecase error', function ( t ) {
     .instanceof( 'body.userIDs', Array, 'userIDs is not an array' )
     .ne( 'body.userIDs.length', 0, 'userIDs array is empty' )
     .forEach( 'body.userIDs' )
+      .nobail()
       .typeof( '.', 'string' )
       .gte( '.length', 3, 'invalid length' )
       .e( '.', 'foo' )
@@ -572,7 +573,7 @@ test( 'basic usecase error', function ( t ) {
   t.end()
 } )
 
-test( 'basic usecase 2', function ( t ) {
+test( 'basic usecase 2 with nobail', function ( t ) {
   var req = {
     body: {
       userID: 'foo',
@@ -590,12 +591,14 @@ test( 'basic usecase 2', function ( t ) {
     .instanceof( 'body.userIDs', Array, 'userIDs is not an array' )
     .ne( 'body.userIDs.length', 0, 'userIDs array is empty' )
     .forEach( 'body.userIDs' )
+      .nobail()
       .typeof( 'name', 'string' )
       .gte( 'name.length', 3 )
       .lte( 'name.length', 3 )
       .lt( 'name.length', 4 )
       .gt( 'name.length', 2 )
       .e( '.name', 'foo' )
+      .e( '.name', 'bar' )
       .end()
     .end()
   )
@@ -610,7 +613,45 @@ test( 'basic usecase 2', function ( t ) {
     err.toString().split( /\s+/ ).join( '' ).trim(),
     `
     Error (iidesuka) invalid fields:
+    .e .body.userIDs[0].name is not equal to bar
     .e .body.userIDs[1].name is not equal to foo
+    .e .body.userIDs[1].name is not equal to bar
+    `.split( /\s+/ ).join( '' ).trim()
+  )
+
+  t.end()
+} )
+
+test( 'basic usecase with bailing', function ( t ) {
+  var req = {
+    body: {
+      userID: 'foo',
+      userIDs: [
+        { name: 'foo' },
+        { name: 'bar' }
+      ]
+    }
+  }
+
+  var err = (
+    iidesuka( req )
+    .forEach( 'body.userIDs' )
+      .e( '.name', 'zoo' )
+      .end()
+    .end()
+  )
+
+  if ( err ) {
+    console.log()
+    console.log( err.toString() )
+    console.log()
+  }
+
+  t.equal(
+    err.toString().split( /\s+/ ).join( '' ).trim(),
+    `
+    Error (iidesuka) invalid fields:
+    .e .body.userIDs[0].name is not equal to zoo
     `.split( /\s+/ ).join( '' ).trim()
   )
 
