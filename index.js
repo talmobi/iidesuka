@@ -641,5 +641,3 @@ function test () {
   log( ' ======== ' )
   log( err + '' )
 }
-
-test()
