@@ -1,6 +1,10 @@
-#  いいですか iidesuka - simple field validator
+[![npm](https://img.shields.io/npm/v/iidesuka.svg?maxAge=3600&style=flat-square)](https://www.npmjs.com/package/iidesuka)
+[![npm](https://img.shields.io/npm/l/iidesuka.svg?maxAge=3600&style=flat-square)](https://github.com/talmobi/iidesuka/blob/master/LICENSE)
 
-## Simple to use
+#  いいですか iidesuka
+simple field validator
+
+## Easy to use
 ```bash
 var iidesuka = require( 'iidesuka' )
 
@@ -25,18 +29,16 @@ var err = (
 
 if ( err ) console.error( err.toString() )
 ```
-
-## sample output
 ```
 Invalid fields:
   typeof body.userID !== string: userID is not a string
   id not equal: id was not foo
 ```
 
-# About
+## About
 Basic object field validator with simple and descriptive errors.
 
-# Why
+## Why
 To easily describe what you're looking for and easy to understand
 error messages for when things go wrong.
 
@@ -44,14 +46,14 @@ error messages for when things go wrong.
 aren't easy to understand or suitable for sending back to the user of
 an API.
 
-# How
+## How
 Using plain old JavaScript.
 
-# Alternatives
+## Alternatives
 There's a bunch of validators and verifiers on npm. This one is intended
-to be really simple.
+to be very basic and give easy to understand error outputs to users when things go wrong.
 
-# Test
+## Test
 ```bash
 npm test
 ```
